@@ -3,12 +3,40 @@
         {
             "name": "Mac",
             "includePath": [
+                // Your project sources
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/main",
                 "${workspaceFolder}/../../src",
+                // ESP-IDF core (cross-platform variable support)
                 "${config:idf.espIdfPath}/components/**",
                 "${config:idf.espIdfPathWin}/components/**",
                 "${config:idf.espAdfPath}/components/**",
-                "${config:idf.espAdfPathWin}/components/**"
+                "${config:idf.espAdfPathWin}/components/**",
+                // Explicit component include paths (for IntelliSense resolution)
+                "${config:idf.espIdfPath}/components/esp_common/include",
+                "${config:idf.espIdfPath}/components/driver/include",
+                "${config:idf.espIdfPath}/components/hal/include",
+                "${config:idf.espIdfPath}/components/esp_hw_support/include",
+                "${config:idf.espIdfPath}/components/esp_system/include",
+                "${config:idf.espIdfPath}/components/freertos/FreeRTOS-Kernel/include",
+                "${config:idf.espIdfPath}/components/freertos/config/include/freertos",
+                "${config:idf.espIdfPath}/components/soc/include",
+                "${config:idf.espIdfPath}/components/soc/esp32s3/include",
+                "${config:idf.espIdfPath}/components/newlib/platform_include",
+                "${config:idf.espIdfPath}/components/log/include",
+                "${config:idf.espIdfPath}/components/esp_rom/include",
+                "${config:idf.espIdfPath}/components/esp_timer/include",
+                "${config:idf.espIdfPath}/components/esp_event/include",
+                "${config:idf.espIdfPath}/components/esp_wifi/include",
+                "${config:idf.espIdfPath}/components/esp_netif/include",
+                "${config:idf.espIdfPath}/components/nvs_flash/include",
+                "${config:idf.espIdfPath}/components/spi_flash/include",
+                "${config:idf.espIdfPath}/components/esp_pm/include",
+                "${config:idf.espIdfPath}/components/esp_ringbuf/include",
+                "${config:idf.espIdfPath}/components/esp_phy/include",
+                "${config:idf.espIdfPath}/components/esp_ipc/include",
+                "${config:idf.espIdfPath}/components/esp_task_wdt/include",
+                "${config:idf.espIdfPath}/components/esp_eth/include"
             ],
             "browse": {
                 "path": [
