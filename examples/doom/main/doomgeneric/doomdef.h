@@ -31,7 +31,7 @@
 // Global parameters/defines.
 //
 // DOOM version
-#define DOOM_VERSION 109
+#define DOOM_VERSION 108
 
 // Version code for cph's longtics hack ("v1.91")
 #define DOOM_191_VERSION 111
@@ -39,7 +39,7 @@
 
 // If rangecheck is undefined,
 // most parameter validation debugging code will not be compiled
-#define RANGECHECK
+// #define RANGECHECK
 
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS 4
