@@ -1837,7 +1837,7 @@ void D_DoomMain (void)
 
     if (gameaction != ga_loadgame )
     {
-		if (autostart || netgame|| true){
+		if (autostart || netgame ){
 			G_InitNew (startskill, startepisode, startmap);
            // printf("Autostarting new game...\n");
         }

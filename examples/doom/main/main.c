@@ -17,14 +17,16 @@
 // Big & Little blue fucker
 #if 1
 mcugdx_display_config_t display_config = {
-		.driver = MCUGDX_ST7789,
-		.native_width = 240,
-		.native_height = 320,
-		.mosi = 11,//SDA
-		.sck = 13,
-		.dc = 8,
-		.cs = 10,
-		.reset = 9};
+    .driver = MCUGDX_ST7789,
+    .native_width = 240,
+    .native_height = 320,
+    .mosi = 13,   // SDA in your Adafruit sketch
+    .sck  = 18,   // SCLK
+    .dc   = 2,
+    .cs   = 15,
+    .reset= 4
+};
+
 #else
 // ILI9341 2,8" 240x320
 mcugdx_display_config_t display_config = {
@@ -304,15 +306,15 @@ int mcugdx_main() {
 
 	mcugdx_init();
 	mcugdx_display_init(&display_config);
-	while(1) {
-		mcugdx_display_clear_color(MCUGDX_BLUE);
-		mcugdx_display_show();
-		mcugdx_sleep(1000);
-		mcugdx_display_clear_color(MCUGDX_RED);
-		mcugdx_display_show();
-		mcugdx_sleep(1000);	
-		printf("color drawn:\n");
-	}
+	// while(1) {
+	// 	mcugdx_display_clear_color(MCUGDX_BLUE);
+	// 	mcugdx_display_show();
+	// 	mcugdx_sleep(1000);
+	// 	mcugdx_display_clear_color(MCUGDX_RED);
+	// 	mcugdx_display_show();
+	// 	mcugdx_sleep(1000);	
+	// 	printf("color drawn:\n");
+	// }
 	mcugdx_display_set_orientation(MCUGDX_LANDSCAPE);
 	mcugdx_rofs_init();
 	mcugdx_audio_init(&(mcugdx_audio_config_t) {
