@@ -1,3 +1,6 @@
-#mcugdx
-A game development framework for ESP32-S3 dev kits with ST7789 displays, I2S audio peripherals, using a custom read-only file system format in a separate flash partition, with desktop emulation as far as possible for faster iteration times.
+Dual Screen ESP32+ESP32S3 DOOM port
 
+Project for UTCN CTI third year Design with MicroProcessors course.
+
+This is a fork of Badlogic's mcugdx framework(a cousin of libgdx)
+It adds communication between an ESP32S3 which runs the actual DOOM port and a second regular ESP32 which processes dualshock4 input through bluetooth adds a second oled screen to show the player stats.
