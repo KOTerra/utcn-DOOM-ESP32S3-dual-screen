@@ -1,6 +1,9 @@
 #include "esp_log.h"
 
 #include "mcugdx.h"
+#include "driver/uart.h" 
+
+
 #include "doomgeneric/doomgeneric.h"
 #include "doomgeneric/w_file.h"
 #include "doomgeneric/i_sound.h"
@@ -10,6 +13,11 @@
 #include "doomgeneric/deh_str.h"
 #include "doomgeneric/doomtype.h"
 #include "doomgeneric/doomkeys.h"
+#include "doomgeneric/doomtype.h"
+#include "doomgeneric/d_player.h"
+#include "doomgeneric/doomstat.h"
+#include "doomgeneric/d_items.h"
+
 
 #define TAG "DOOM"
 #define DEBOUNCE_TIME 25
@@ -250,7 +258,15 @@ void DG_DrawFrame(void) {
 		}
 	}
 	last_frame_time = mcugdx_time();
-	printf("main.c Frame drawn: %d\n", frames);
+	player_t *plr = &players[consoleplayer];
+
+	printf("Health: %d | Bullets: %d | Shells: %d | Rkts: %d | Cells: %d\n",
+		   plr->health,
+		   plr->ammo[am_clip],
+		   plr->ammo[am_shell],
+		   plr->ammo[am_misl],
+		   plr->ammo[am_cell]);
+	//serial transmission here
 }
 
 uint32_t DG_GetTicksMs() {

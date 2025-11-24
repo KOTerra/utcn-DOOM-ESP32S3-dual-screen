@@ -21,5 +21,8 @@
     "--background-index",
     "--query-driver=/Users/mihaistoica/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32s3-elf-gcc",
     "--compile-commands-dir=/Users/mihaistoica/REPOSITORIES/mcugdx/examples/doom/build"
-  ]
+  ],
+  "files.associations": {
+    "doomstat.h": "c"
+  }
 }
