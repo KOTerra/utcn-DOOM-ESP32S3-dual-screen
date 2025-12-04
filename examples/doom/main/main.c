@@ -1,7 +1,9 @@
 #include "esp_log.h"
 
 #include "mcugdx.h"
-#include "driver/uart.h" 
+#include "driver/uart.h"
+#include <stdint.h>
+#include "driver/gpio.h"
 
 
 #include "doomgeneric/doomgeneric.h"
@@ -78,14 +80,12 @@ static wad_file_t *doom_rofs_open_file(char *path) {
 	return &result->wad;
 }
 
-#include <stddef.h>// for size_t (if not already included by your headers)
+#include <stddef.h>
 
-/* ... earlier code ... */
 
 static void doom_rofs_close_file(wad_file_t *wad) {
 	rofs_wad_file_t *rofs_wad = (rofs_wad_file_t *) wad;
 	if (rofs_wad) {
-		/* close the underlying rofs handle (if api provides close) */
 		if (mcugdx_rofs.close) {
 			mcugdx_rofs.close(rofs_wad->handle);
 		}
@@ -93,20 +93,14 @@ static void doom_rofs_close_file(wad_file_t *wad) {
 	}
 }
 
-/* Correct signature and return type to match wad_file_class_t:
-   size_t doom_rofs_read(wad_file_t *wad, unsigned int offset, void *buffer, size_t buffer_len)
-*/
+
 static size_t doom_rofs_read(wad_file_t *wad, unsigned int offset, void *buffer, size_t buffer_len) {
 	rofs_wad_file_t *rofs_wad = (rofs_wad_file_t *) wad;
 
-	/* Seek must be called with the correct number of args for mcugdx_rofs.seek.
-       Remove the extra `0` that caused "too many arguments". */
 	if (mcugdx_rofs.seek) {
-		/* many seek APIs are (handle, offset) — adapt if yours differs */
 		mcugdx_rofs.seek(rofs_wad->handle, offset);
 	}
 
-	/* mcugdx_rofs.read(handle, buffer, buffer_len) — this matches how you use it below */
 	if (mcugdx_rofs.read) {
 		return mcugdx_rofs.read(rofs_wad->handle, buffer, buffer_len);
 	}
@@ -237,6 +231,49 @@ sound_module_t DG_sound_module = {
 		doom_precache_sounds,
 };
 
+typedef struct __attribute__((packed)) {
+	uint8_t health;  // 1 byte
+	uint16_t bullets;// 2 bytes
+	uint8_t shells;  // 1 byte
+	uint8_t rockets; // 1 byte
+	uint16_t cells;  // 2 bytes
+} game_data_t;
+
+#define GAME_UART_PORT UART_NUM_1
+
+void send_player_data_raw(const player_t *plr) {
+	game_data_t pkt;
+
+	pkt.health = (uint8_t) plr->health;
+	pkt.bullets = (uint16_t) plr->ammo[am_clip];
+	pkt.shells = (uint8_t) plr->ammo[am_shell];
+	pkt.rockets = (uint8_t) plr->ammo[am_misl];
+	pkt.cells = (uint16_t) plr->ammo[am_cell];
+
+	const char header[] = {0xAA, 0x55};
+	uart_write_bytes(GAME_UART_PORT, header, 2);
+
+	uart_write_bytes(GAME_UART_PORT, (const char *) &pkt, sizeof(pkt));
+}
+
+#define UART_TX_PIN GPIO_NUM_17
+
+void init_uart_raw() {
+	const uart_config_t uart_config = {
+			.baud_rate = 115200,
+			.data_bits = UART_DATA_8_BITS,
+			.parity = UART_PARITY_DISABLE,
+			.stop_bits = UART_STOP_BITS_1,
+			.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+			.source_clk = UART_SCLK_DEFAULT,
+	};
+
+	uart_driver_install(GAME_UART_PORT, 256, 0, 0, NULL, 0);
+	uart_param_config(GAME_UART_PORT, &uart_config);
+
+	uart_set_pin(GAME_UART_PORT, UART_TX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+}
+
 void DG_Init() {
 	DG_ScreenBuffer = (pixel_t *) (mcugdx_display_frame_buffer() + mcugdx_display_width() * 20);
 }
@@ -246,6 +283,7 @@ void DG_SetWindowTitle(const char *title) {
 
 int frames = 0;
 double last_frame_time = -1;
+double last_uart_send_time = -1;
 void DG_DrawFrame(void) {
 	mcugdx_display_show();
 
@@ -260,13 +298,11 @@ void DG_DrawFrame(void) {
 	last_frame_time = mcugdx_time();
 	player_t *plr = &players[consoleplayer];
 
-	printf("Health: %d | Bullets: %d | Shells: %d | Rkts: %d | Cells: %d\n",
-		   plr->health,
-		   plr->ammo[am_clip],
-		   plr->ammo[am_shell],
-		   plr->ammo[am_misl],
-		   plr->ammo[am_cell]);
-	//serial transmission here
+	double current_time = mcugdx_time() * 1000;
+	if (current_time - last_uart_send_time > 50) {
+		send_player_data_raw(plr);
+		last_uart_send_time = current_time;
+	}
 }
 
 uint32_t DG_GetTicksMs() {
@@ -320,24 +356,12 @@ int mcugdx_main() {
 	printf("Hello from ESP32!\n");
 
 	mcugdx_init();
+	init_uart_raw();
 	mcugdx_display_init(&display_config);
-	// while(1) {
-	// 	mcugdx_display_clear_color(MCUGDX_BLUE);
-	// 	mcugdx_display_show();
-	// 	mcugdx_sleep(1000);
-	// 	mcugdx_display_clear_color(MCUGDX_RED);
-	// 	mcugdx_display_show();
-	// 	mcugdx_sleep(1000);
-	// 	printf("color drawn:\n");
-	// }
+
 	mcugdx_display_set_orientation(MCUGDX_LANDSCAPE);
 	mcugdx_rofs_init();
-	mcugdx_audio_init(&(mcugdx_audio_config_t) {
-			.channels = 2,
-			.sample_rate = 11025,
-			.bclk = 47,
-			.ws = 21,
-			.dout = 38});
+
 	mcugdx_button_create(5, DEBOUNCE_TIME, MCUGDX_KEY_K);
 	mcugdx_button_create(6, DEBOUNCE_TIME, MCUGDX_KEY_L);
 	mcugdx_button_create(7, DEBOUNCE_TIME, MCUGDX_KEY_ESCAPE);
@@ -353,7 +377,6 @@ int mcugdx_main() {
 	mcugdx_log(TAG, "Game created");
 	while (true) {
 		doomgeneric_Tick();
-		printf("Frame drawn:\n");
 	}
 
 	return 0;
